@@ -47,7 +47,7 @@ class Authorization
 
     public function authorizeUser($login, $password): bool // xss, sql инъекции
     {
-        $login = $this->db->escapeValue($login);
+        $login = strip_tags($this->db->escapeValue($login));
         $password = $this->db->escapeValue($password);
         $user = $this->db->executeQueryWithResult(
             "SELECT * FROM users WHERE login='{$login}' AND password='{$password}'")->fetchRow();
