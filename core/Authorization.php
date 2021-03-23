@@ -45,7 +45,7 @@ class Authorization
             "SELECT * FROM users WHERE login='{$login}'")->fetchRow();
     }
 
-    public function authorizeUser($login, $password): bool
+    public function authorizeUser($login, $password): bool // xss, sql инъекции
     {
         $login = $this->db->escapeValue($login);
         $password = $this->db->escapeValue($password);
@@ -61,7 +61,7 @@ class Authorization
         }
     }
 
-    public function registerUser($login, $password): bool
+    public function registerUser($login, $password): bool // xss, sql инъекции
     {
         $login = strip_tags($this->db->escapeValue($login));
         $password = $this->db->escapeValue($password);
