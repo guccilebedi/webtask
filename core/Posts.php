@@ -34,17 +34,23 @@ class Posts
 
     public function addPost($userId, $title, $text)
     {
-        $this->db->executeQuery("INSERT INTO posts (user_id, title, text, date) VALUES ({$userId}, '{$title}',
+        $title = $this->db->escapeValue($title);
+        $text = $this->db->escapeValue($text);
+        $this->db->executeQuery("INSERT INTO posts (user_id, title, text, date) VALUES ('{$userId}', '{$title}',
                                                        '{$text}', DATE('now'))");
     }
 
     public function deletePost($postId)
     {
+        $postId = $this->db->escapeValue($postId);
         $this->db->executeQuery('DELETE FROM posts WHERE id = ' . $postId);
     }
 
     public function updatePost($postId, $title, $text)
     {
+        $postId = $this->db->escapeValue($postId);
+        $title = $this->db->escapeValue($title);
+        $text = $this->db->escapeValue($text);
         $this->db->executeQuery("UPDATE posts SET title='{$title}', text='{$text}' WHERE id = " . $postId);
     }
 }

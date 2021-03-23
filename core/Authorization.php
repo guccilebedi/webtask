@@ -47,6 +47,8 @@ class Authorization
 
     public function authorizeUser($login, $password): bool
     {
+        $login = $this->db->escapeValue($login);
+        $password = $this->db->escapeValue($password);
         $user = $this->db->executeQueryWithResult(
             "SELECT * FROM users WHERE login='{$login}' AND password='{$password}'")->fetchRow();
 
@@ -61,6 +63,8 @@ class Authorization
 
     public function registerUser($login, $password): bool
     {
+        $login = strip_tags($this->db->escapeValue($login));
+        $password = $this->db->escapeValue($password);
         $user = $this->findUserByLogin($login);
 
         if (!empty($user)) {

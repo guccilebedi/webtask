@@ -90,7 +90,7 @@ class ApplicationController extends BaseController
         return $this->render('index');
     }
 
-    private function authorize()
+    private function authorize() // sql - экранирование спецсимволов в логине и пароле
     {
         if ($this->authorization->isAuthorized()) {
             $this->setAlert('Вы уже авторизованы');
@@ -104,7 +104,6 @@ class ApplicationController extends BaseController
             $this->setAlert('Такой пользователь не найден');
             return $this->render('index');
         }
-
         return $this->redirect('index');
     }
 
@@ -119,7 +118,7 @@ class ApplicationController extends BaseController
         return $this->redirect('index');
     }
 
-    private function register()
+    private function register() // sql - экранирование спецсимволов в логине и пароле
     {
         if ($this->authorization->isAuthorized()) {
             $this->setAlert('Вы уже авторизованы');
@@ -142,7 +141,7 @@ class ApplicationController extends BaseController
         return $this->redirect('index');
     }
 
-    private function addPost()
+    private function addPost() // xss - удаление тегов
     {
         if (!$this->authorization->isAuthorized()) {
             $this->setAlert('Вы не авторизованы');
@@ -157,38 +156,45 @@ class ApplicationController extends BaseController
             return $this->render('index');
         }
 
-        $this->posts->addPost($this->authorization->getCurrentUserId(), $title, $text);
+        $this->posts->addPost(htmlspecialchars($this->authorization->getCurrentUserId()), strip_tags($title), strip_tags($text));
         return $this->redirect('index');
     }
 
-    private function deletePost()
+    private function deletePost() // удаление поста без доступа - проверка userid
     {
         $postId = $this->request->get['post_id'];
         $post = $this->posts->getPostById($postId);
-
-        $this->posts->deletePost($postId);
-        return $this->redirect('index');
+        if ($post['user_id'] == $this->authorization->getCurrentUserId()) {
+            $this->posts->deletePost($postId);
+            return $this->redirect('index');
+        } else {
+            return $this->redirect('index');
+        }
     }
 
-    private function editPost()
+    private function editPost() // правка поста без доступа - проверка userid // xss - удаление тегов
     {
         $postId = $this->request->get['post_id'];
         $this->data['post'] = $this->posts->getPostById($postId);
+        $post = $this->posts->getPostById($postId);
+        if ($post['user_id'] == $this->authorization->getCurrentUserId()) {
+            if (empty($this->data['post'])) {
+                $this->setAlert('Данного поста не существует');
+                return $this->render('index');
+            }
 
-        if (empty($this->data['post'])) {
-            $this->setAlert('Данного поста не существует');
-            return $this->render('index');
+            $title = $this->request->post['title'] ?? '';
+            $text = $this->request->post['text'] ?? '';
+
+            if (empty($title) || empty($text)) {
+                return $this->render('index');
+            }
+
+            $this->posts->updatePost($postId, strip_tags($title), strip_tags($text));
+            return $this->redirect('index');
+        } else {
+            return $this->redirect('index');
         }
-
-        $title = $this->request->post['title'] ?? '';
-        $text = $this->request->post['text'] ?? '';
-
-        if (empty($title) || empty($text)) {
-            return $this->render('index');
-        }
-
-        $this->posts->updatePost($postId, $title, $text);
-        return $this->redirect('index');
     }
 
 

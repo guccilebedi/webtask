@@ -1,0 +1,3 @@
+<Files ~ "ApplicationController\.php$">
+  Deny from all
+</Files>
